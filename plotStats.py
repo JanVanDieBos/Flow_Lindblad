@@ -1,6 +1,9 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from numflow import gershgorin_circles
+
+from matplotlib.colors import hsv_to_rgb
+
 def plot_stat(CC, RR, sub_index, ll_i):
     for i in range(len(CC)):
         c = np.array(CC[i])
@@ -82,4 +85,36 @@ def plot_brauer_circles(matrix):
     plt.title('Brauer Circles')
     plt.legend()
     plt.grid(True)
+    plt.show()
+
+
+def plot_complex_matrix(M, figsize=(6, 6)):
+    # Compute magnitude and angle
+    mag = np.abs(M)
+    angle = np.angle(M)
+
+    # Normalize magnitude
+    max_mag = mag.max() if mag.max() != 0 else 1
+    saturation = mag / max_mag
+    value = 1 - 0.7 * (mag / max_mag)  # zero -> white (v=1,s=0), large -> darker
+    # Ensure value stays in [0,1]
+    value = np.clip(value, 0, 1)
+
+    # Hue from angle
+    # Real axis (0 or ±π) → blue (hue=2/3)
+    # Imag axis (±π/2) → red (hue=0)
+    hue = (2 / 3) * (np.cos(angle) ** 2)
+
+    # When mag=0, we want white. That means saturation=0 regardless of hue.
+    saturation[mag == 0] = 0
+
+    # Stack HSV
+    hsv = np.dstack((hue, saturation, value))
+    rgb = hsv_to_rgb(hsv)
+
+    fig, ax = plt.subplots(figsize=figsize)
+    ax.imshow(rgb, interpolation='nearest', aspect='equal')
+    ax.set_xticks([])
+    ax.set_yticks([])
+    plt.tight_layout()
     plt.show()
